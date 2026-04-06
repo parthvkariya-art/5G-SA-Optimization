@@ -1,31 +1,28 @@
-# 5G mm-Wave Small Cell Optimization using Simulated Annealing (v2.0)
+# 5G mm-Wave Small Cell Optimization using Simulated Annealing (v3.0)
 
 A Python-based simulation engine that models city grids to optimize the deployment of 5G mm-Wave base stations.
 
 **Author:** Parth Vinod Kariya  
 **Institution:** MAHE Bengaluru  
 
-## 🚀 Project Overview (v2.0 - Dynamic Allocation)
+## 🚀 Project Overview (v3.0 - Dense Urban & ISD Constraints)
 High-frequency 5G mm-Wave signals (24-100 GHz) suffer from severe atmospheric absorption and solid blockages. Traditional hexagonal macro-cell planning fails in urban "canyons," requiring dense Small Cell deployments.
 
-In **v2.0**, we introduce realistic power constraints and **Dynamic Tower Allocation**. Instead of merely moving a fixed number of towers, the Simulated Annealing (SA) algorithm is now capable of adding new towers to fix dead-zones, and deleting redundant towers to save on Capital Expenditure (CapEx).
+In **v3.0**, we scale the complexity of the environment and the strictness of the algorithm. We introduce a highly dense urban grid, ultra-low transmit power, and an **Inter-Site Distance (ISD)** penalty. This forces the algorithm to not only find coverage but to build a perfectly distributed mesh network that avoids signal interference.
 
-### ⚙️ Core Physics & Constraints (v2.0)
-* **Propagation Model:** Log-Distance Path Loss with Line-of-Sight blockage penalties (25 dB drop).
-* **Realistic Power Constraints:** Transmit power is lowered to a realistic small-cell level ($P_{TX} = 25$ dBm), forcing the creation of signal blind spots.
-* **Dynamic Perturbation:** The algorithm uses a probability distribution to determine its next move:
-  * **Add Tower:** Boosts coverage but incurs a heavy CapEx penalty ($\alpha \cdot N$).
-  * **Remove Tower:** Saves CapEx but risks dropping signal coverage below the threshold.
-  * **Move Tower:** Fine-tunes the network mesh.
+### ⚙️ Core Physics & Constraints (v3.0)
+* **Dense Urban Environment:** A complex map of "urban canyons" with an increased path loss exponent ($N=4.2$) and ultra-low transmit power ($P_{TX} = 10$).
+* **Inter-Site Distance Constraint:** A strict 5000-point penalty is applied if any two towers are placed closer than 15 meters to each other.
+* **Cooling Schedule:** Because the mathematical terrain is now much harder to navigate, the Simulated Annealing engine has been stretched to 300 iterations with a slower cooling rate ($0.96$).
 
 **Cost Function:**
-$$J = \alpha \cdot N + \beta \cdot (1 - P_{cov})$$
+$$J = \alpha \cdot N + \beta \cdot (1 - P_{cov}) + \text{ISD\_Penalty}$$
 
-## 📊 Simulation Results (v2.0)
-By lowering the transmit power, the initial 12 random towers fail to cover the map, creating massive signal shadows and a high initial cost. The SA algorithm aggressively adds towers to reach 100% coverage, and then dynamically **deletes redundant towers** to minimize the $\alpha \cdot N$ cost, successfully finding the lowest-cost configuration.
+## 📊 Simulation Results (v3.0)
+The algorithm successfully starts with a random, highly-shadowed layout in a dense city block. It dynamically adds towers to blast through the dead zones, and thanks to the ISD penalty, it spaces them perfectly apart. The convergence curve shows a prolonged, classic thermodynamic cooling process as it rejects bad placements.
 
-![v2.0 Results](assets/version2(dynamic).png)
-*(Left: Initial placement with heavy blind spots due to realistic $P_{TX}$. Middle: Optimized layout. Right: The convergence curve showing rapid cost reduction as redundant towers are deleted).*
+![v3.0 Results](assets/version3(isd).png)
+*(Left: Initial random placement failing in the dense city. Middle: SA optimized layout showing perfectly spaced, interference-free tower placement. Right: The extended thermodynamic cooling convergence curve).*
 
 ## 💻 How to Run Locally
 

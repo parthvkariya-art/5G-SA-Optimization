@@ -4,21 +4,25 @@ import random
 import math
 
 # ==========================================
-# 1. SIMULATION PARAMETERS & PHYSICS (v2.0)
+# 1. SIMULATION PARAMETERS & PHYSICS (v3.0)
 # ==========================================
 GRID_SIZE = 100         # 100x100 grid (e.g., 10m per cell = 1km x 1km)
-P_TX = 25               # Lowered transmit power to force blind spots
-N_PATH_LOSS = 3.5       # Path loss exponent for urban area
+P_TX = 10               # Ultra-low power: 5G Small Cells have very short range!
+N_PATH_LOSS = 4.2       # 4.2 is highly realistic for dense urban signal scatter
 FREQ_GHZ = 28           # 28 GHz mmWave
-BLOCKAGE_PENALTY = 25   # dB penalty for hitting a building
+BLOCKAGE_PENALTY = 30   # Concrete buildings destroy mmWave signals (30 dB drop)
 THRESHOLD = -90         # Minimum acceptable signal (dBm)
 
 ALPHA = 10              # Cost weight for number of towers
 BETA = 10000            # Massive penalty weight for uncovered area
+MIN_ISD = 15            # Minimum Inter-Site Distance (15 meters/grid cells)
+ISD_PENALTY = 5000      # Massive cost penalty if towers are placed too close
 
-# Define buildings as (x_min, x_max, y_min, y_max)
+# A denser city map with complex "Urban Canyons" and narrow streets
 BUILDINGS = [
-    (20, 30, 20, 60), (50, 70, 40, 50), (70, 85, 70, 90), (10, 25, 80, 95)
+    (10, 25, 10, 40), (35, 45, 10, 60), (55, 80, 10, 30), 
+    (10, 40, 60, 75), (55, 70, 45, 85), (80, 95, 40, 90),
+    (20, 30, 85, 95), (85, 95, 10, 25)
 ]
 
 # ==========================================
@@ -56,15 +60,24 @@ def calculate_coverage(towers):
     return coverage_map, p_cov
 
 def cost_function(towers):
-    """J = alpha*N + beta*(1 - P_cov)"""
+    """J = alpha*N + beta*(1 - P_cov) + ISD_Penalty"""
     _, p_cov = calculate_coverage(towers)
-    return ALPHA * len(towers) + BETA * (1 - p_cov), p_cov
+    
+    # Check Inter-Site Distance (ISD) Constraint
+    penalty = 0
+    for i in range(len(towers)):
+        for j in range(i + 1, len(towers)):
+            dist = math.hypot(towers[i][0] - towers[j][0], towers[i][1] - towers[j][1])
+            if dist < MIN_ISD:
+                penalty += ISD_PENALTY
+                
+    return ALPHA * len(towers) + BETA * (1 - p_cov) + penalty, p_cov
 
 # ==========================================
-# 3. SIMULATED ANNEALING ENGINE (Dynamic)
+# 3. SIMULATED ANNEALING ENGINE
 # ==========================================
-def run_simulated_annealing(initial_towers, t_init=1000, cooling_rate=0.90, max_iter=200):
-    print("Starting Simulated Annealing (v2.0 - Dynamic Towers)...")
+def run_simulated_annealing(initial_towers, t_init=1000, cooling_rate=0.96, max_iter=300):
+    print("Starting Simulated Annealing (v3.0 - ISD Constraints)...")
     current_towers = initial_towers.copy()
     current_cost, current_cov = cost_function(current_towers)
     
@@ -75,18 +88,15 @@ def run_simulated_annealing(initial_towers, t_init=1000, cooling_rate=0.90, max_
     history_cost = []
     
     for i in range(max_iter):
-        # 1. PERTURBATION: Move, Add, or Remove a tower
+        # PERTURBATION: Move, Add, or Remove
         new_towers = current_towers.copy()
         action = random.random()
         
         if action < 0.2 and len(new_towers) > 1:
-            # 20% chance to remove a random tower (Saves CapEx cost!)
             new_towers.pop(random.randint(0, len(new_towers) - 1))
         elif action < 0.4:
-            # 20% chance to add a new tower (Boosts coverage!)
             new_towers.append((random.randint(0, GRID_SIZE-1), random.randint(0, GRID_SIZE-1)))
         else:
-            # 60% chance to just move an existing tower
             idx = random.randint(0, len(new_towers) - 1)
             shift_x = random.randint(-15, 15)
             shift_y = random.randint(-15, 15)
@@ -94,11 +104,11 @@ def run_simulated_annealing(initial_towers, t_init=1000, cooling_rate=0.90, max_
             new_y = max(0, min(GRID_SIZE - 1, new_towers[idx][1] + shift_y))
             new_towers[idx] = (new_x, new_y)
             
-        # 2. EVALUATE
+        # EVALUATE
         new_cost, new_cov = cost_function(new_towers)
         delta_J = new_cost - current_cost
         
-        # 3. METROPOLIS ACCEPTANCE CRITERION
+        # METROPOLIS ACCEPTANCE
         if delta_J < 0:
             current_towers = new_towers.copy()
             current_cost = new_cost
@@ -109,13 +119,11 @@ def run_simulated_annealing(initial_towers, t_init=1000, cooling_rate=0.90, max_
         else:
             probability = math.exp(-delta_J / T)
             if random.random() < probability:
-                current_towers = new_towers.copy() # Accept bad move
+                current_towers = new_towers.copy()
                 current_cost = new_cost
                 current_cov = new_cov
                 
         history_cost.append(current_cost)
-        
-        # 4. COOLING
         T *= cooling_rate
         print(f"Iter {i}: Cost = {current_cost:.2f} | Coverage = {current_cov*100:.1f}% | Towers = {len(current_towers)} | Temp = {T:.2f}")
 
