@@ -1,30 +1,31 @@
-# 5G mm-Wave Small Cell Optimization using Simulated Annealing (v1.0)
+# 5G mm-Wave Small Cell Optimization using Simulated Annealing (v2.0)
 
-A Python-based baseline simulation engine that models city grids to optimize the deployment of 5G mm-Wave base stations.
+A Python-based simulation engine that models city grids to optimize the deployment of 5G mm-Wave base stations.
 
-**Author:** Parth Vinod Kariya
-**Institution:** MAHE Bengaluru
+**Author:** Parth Vinod Kariya  
+**Institution:** MAHE Bengaluru  
 
-## 🚀 Project Overview (Baseline Version)
+## 🚀 Project Overview (v2.0 - Dynamic Allocation)
 High-frequency 5G mm-Wave signals (24-100 GHz) suffer from severe atmospheric absorption and solid blockages. Traditional hexagonal macro-cell planning fails in urban "canyons," requiring dense Small Cell deployments.
 
-This repository hosts **v1.0 (Proof of Concept)**, establishing the core mathematical model. We utilize the Simulated Annealing (SA) metaheuristic to find optimal placements.
+In **v2.0**, we introduce realistic power constraints and **Dynamic Tower Allocation**. Instead of merely moving a fixed number of towers, the Simulated Annealing (SA) algorithm is now capable of adding new towers to fix dead-zones, and deleting redundant towers to save on Capital Expenditure (CapEx).
 
-### ⚙️ Core Physics & Constraints (v1.0 Baseline)
-* **Propagation Model:** Log-Distance Path Loss with severe Line-of-Sight blockage penalties (25 dB drop).
-* **High Power:** This baseline assumes high transmit power (40 dBm), making total signal coverage trivially easy.
-* **Perturbation Logic:** In this initial version, the algorithm can only *move* existing towers; it cannot dynamically add or remove them.
+### ⚙️ Core Physics & Constraints (v2.0)
+* **Propagation Model:** Log-Distance Path Loss with Line-of-Sight blockage penalties (25 dB drop).
+* **Realistic Power Constraints:** Transmit power is lowered to a realistic small-cell level ($P_{TX} = 25$ dBm), forcing the creation of signal blind spots.
+* **Dynamic Perturbation:** The algorithm uses a probability distribution to determine its next move:
+  * **Add Tower:** Boosts coverage but incurs a heavy CapEx penalty ($\alpha \cdot N$).
+  * **Remove Tower:** Saves CapEx but risks dropping signal coverage below the threshold.
+  * **Move Tower:** Fine-tunes the network mesh.
 
 **Cost Function:**
 $$J = \alpha \cdot N + \beta \cdot (1 - P_{cov})$$
 
-The algorithm seeks to minimize this function, where $N$ is the static number of towers and $P_{cov}$ is the coverage percentage.
+## 📊 Simulation Results (v2.0)
+By lowering the transmit power, the initial 12 random towers fail to cover the map, creating massive signal shadows and a high initial cost. The SA algorithm aggressively adds towers to reach 100% coverage, and then dynamically **deletes redundant towers** to minimize the $\alpha \cdot N$ cost, successfully finding the lowest-cost configuration.
 
-## 📊 Simulation Results (v1.0)
-Due to the high transmit power, the initial random towers easily achieve 100% signal coverage even with simple building shadows. Because of this over-engineered state, moving towers slightly has almost no impact on total cost, leading to a **completely flat cost function**.
-
-![v1.0 Results](assets/version1(unoptimized).png)
-*(Left: Initial random placement already achieving high coverage. Middle: Iterated placement with minimal change. Right: A high, flat cost curve showing algorithm stagnation at a local minimum).*
+![v2.0 Results](assets/version2(dynamic).png)
+*(Left: Initial placement with heavy blind spots due to realistic $P_{TX}$. Middle: Optimized layout. Right: The convergence curve showing rapid cost reduction as redundant towers are deleted).*
 
 ## 💻 How to Run Locally
 
