@@ -18,7 +18,7 @@ In **v3.0**, we scale the complexity of the environment and the strictness of th
 **Cost Function:**
 
 $$
-J = \alpha \cdot N + \beta \cdot (1 - P_{cov}) + \text{ISD\_Penalty}
+J = \alpha \cdot N + \beta \cdot (1 - P_{cov}) + \text{ISD Penalty}
 $$
 
 ## 📊 Simulation Results (v3.0)
