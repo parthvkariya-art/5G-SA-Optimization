@@ -16,6 +16,7 @@ In **v3.0**, we scale the complexity of the environment and the strictness of th
 * **Cooling Schedule:** Because the mathematical terrain is now much harder to navigate, the Simulated Annealing engine has been stretched to 300 iterations with a slower cooling rate ($0.96$).
 
 **Cost Function:**
+
 $$
 J = \alpha \cdot N + \beta \cdot (1 - P_{cov}) + \text{ISD\_Penalty}
 $$
