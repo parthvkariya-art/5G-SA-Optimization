@@ -1,26 +1,30 @@
-# 5G mm-Wave Small Cell Optimization using Simulated Annealing
+# 5G mm-Wave Small Cell Optimization using Simulated Annealing (v1.0)
 
-A Python-based simulation engine that models dense urban environments and uses the Simulated Annealing (SA) metaheuristic to optimize the deployment of 5G mm-Wave base stations.
+A Python-based baseline simulation engine that models city grids to optimize the deployment of 5G mm-Wave base stations.
 
 **Author:** Parth Vinod Kariya
 **Institution:** MAHE Bengaluru
 
-## 🚀 Project Overview
-High-frequency 5G mm-Wave signals (24-100 GHz) suffer from severe atmospheric absorption and solid blockages. Traditional hexagonal macro-cell planning fails in urban "canyons." 
+## 🚀 Project Overview (Baseline Version)
+High-frequency 5G mm-Wave signals (24-100 GHz) suffer from severe atmospheric absorption and solid blockages. Traditional hexagonal macro-cell planning fails in urban "canyons," requiring dense Small Cell deployments.
 
-This project simulates a highly dense city grid and deploys a Simulated Annealing algorithm to find the exact global optimum for base station placements. It successfully balances minimizing Capital Expenditure (CapEx) while enforcing a strict 99% signal coverage threshold.
+This repository hosts **v1.0 (Proof of Concept)**, establishing the core mathematical model. We utilize the Simulated Annealing (SA) metaheuristic to find optimal placements.
 
-### ⚙️ Core Physics & Constraints
-* **Propagation Model:** Log-Distance Path Loss with severe Line-of-Sight blockage penalties (30 dB drop through concrete).
-* **Cost Function:** $J = \alpha \cdot N + \beta \cdot (1 - P_{cov}) + \text{ISD\_Penalty}$
-  * Heavily penalizes signal dead zones.
-  * Enforces an Inter-Site Distance (ISD) constraint to prevent overlapping towers and signal interference.
+### ⚙️ Core Physics & Constraints (v1.0 Baseline)
+* **Propagation Model:** Log-Distance Path Loss with severe Line-of-Sight blockage penalties (25 dB drop).
+* **High Power:** This baseline assumes high transmit power (40 dBm), making total signal coverage trivially easy.
+* **Perturbation Logic:** In this initial version, the algorithm can only *move* existing towers; it cannot dynamically add or remove them.
 
-## 📊 Simulation Results
-The algorithm successfully starts with a random, highly-shadowed layout and dynamically adds, shifts, and removes towers to achieve **>99% coverage** with minimum infrastructure.
+**Cost Function:**
+$$J = \alpha \cdot N + \beta \cdot (1 - P_{cov})$$
 
-![Optimization Results](assets/ofigure%20v2.png)
-*(Left: Initial random placement with heavy blind spots. Middle: SA optimized layout routing signals around buildings. Right: The thermodynamic cooling convergence curve).*
+The algorithm seeks to minimize this function, where $N$ is the static number of towers and $P_{cov}$ is the coverage percentage.
+
+## 📊 Simulation Results (v1.0)
+Due to the high transmit power, the initial random towers easily achieve 100% signal coverage even with simple building shadows. Because of this over-engineered state, moving towers slightly has almost no impact on total cost, leading to a **completely flat cost function**.
+
+![v1.0 Results](assets/version1(unoptimized).png)
+*(Left: Initial random placement already achieving high coverage. Middle: Iterated placement with minimal change. Right: A high, flat cost curve showing algorithm stagnation at a local minimum).*
 
 ## 💻 How to Run Locally
 
